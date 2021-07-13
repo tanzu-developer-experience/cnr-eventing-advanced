@@ -56,6 +56,7 @@ Truthfully, the author of the book "Knative in Action" doesn’t think you shoul
 In previous examples so far we’ve positioned the `Sink` as being a URI. It turns out that this is only one way to express “send my *CloudEvents* here.” The other is to use a "Ref" — a reference to another Kubernetes record.
 ```terminal:execute
 command: kn source ping update ping-player --sink ksvc:cloudevents-player
+```
 The kubectl/YAML counter-part for our source looks like this:
 ```
 kubectl apply -f - << EOF

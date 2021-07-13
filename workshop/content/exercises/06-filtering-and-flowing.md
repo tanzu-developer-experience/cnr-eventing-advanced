@@ -38,7 +38,7 @@ Because only exact matches will pass through the filter defined by a `Trigger` o
 The upside of this strictness with highly specific filters is that downstream systems are less likely to be accidentally overloaded by traffic with unexpected new fields or changes in demand.
 The downside is that it’s inexpressive.
 
-You have three choices. One is to wait for `Knative Eventing` to acquire a more expressive filtering system. 
+You have three choices. One is to wait for *Knative Eventing* to acquire a more expressive filtering system. 
 Another is to perform some amount of filtering at the receiving end, meaning that some fraction of incoming `CloudEvents` is basically wasted. 
 The third option is to inject additional information at the origin, against which simple filters can be applied.
 
@@ -61,7 +61,7 @@ Instead of the CloudEvents player application, we will use Sockeye which reveals
 command: kn service create sockeye --image docker.io/n3wscott/sockeye:v0.5.0
 ```
 The next step is the creation of the Sequence.
-```terminal:execute
+```execute
 kubectl apply -f - << EOF
 apiVersion: flows.knative.dev/v1beta1
 kind: Sequence
@@ -94,7 +94,7 @@ command: kubectl get sequence example-sequence
 ``` 
 ... you can see that the *Sequence* is not ready, because `SubscriptionsNotReady`. The *Subscriptions* in this case are the two *Services*: first-sequence-service and second-sequence-service.
 You will create these now, using a simple example system provided by *Knative Eventing*.
-```terminal:execute
+```execute
 kn service create first-sequence-service --image gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/appender --env MESSAGE="through FIRST" 
 kn service create second-sequence-service --image gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/appender --env MESSAGE="through SECOND"
 kubectl get sequence example-sequence
@@ -238,7 +238,7 @@ But realistically, the filter and the subscriber are both fully-fledged processe
 When should you use a filter on *Parallel* branches? The view of the author of "Knative in Action" is that you shouldn’t, with one exception. If your subscriber is an expensive or limited resource, you will want to shed as much unwanted demand before you reach it. For example, I might be running a system where I want to send some small fraction of CloudEvents to an in-memory analytics store for further analysis. Rather than inserting everything coming off the wire, I would prefer to shed load before reaching the database. In this scenario, the filter is a useful ally.
 
 The simplest thing you can do with a Parallel is to pretend it’s a Sequence.
-```terminal:execute
+```execute
 kubectl apply -f - << EOF
 apiVersion: flows.knative.dev/v1beta1
 kind: Parallel
@@ -258,7 +258,7 @@ spec:
         name: sockeye
 EOF
 ```
-```terminal:execute
+```execute
 kn service create first-branch-service --image gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/appender --env MESSAGE=" BRANCH"
 kn trigger create parallel-example --filter type=com.example.parallel --sink http://example-parallel-kn-parallel-0-kn-channel.{{ session_namespace }}.{{ ingress_domain }}
 ```
@@ -268,7 +268,7 @@ To try this out, execute the following command.
 command: http post http://{{ session_namespace }}.{{ ingress_domain }}/default/default Ce-Id:$(uuidgen) Ce-Specversion:1.0 Ce-Type:com.example.parallel Ce-Source:example/parallel message="Here is the Parallel: "
 ```
 Let's now add a second subscriber that also replies to the Sockeye application.
-```terminal:execute
+```execute
 kubectl apply -f - << EOF
 apiVersion: flows.knative.dev/v1beta1
 kind: Parallel
@@ -299,7 +299,7 @@ spec:
 EOF
 ```
 ```terminal:execute
-kn service create second-branch-service --image gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/appender --env MESSAGE=" BRANCH"
+command: kn service create second-branch-service --image gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/appender --env MESSAGE=" BRANCH"
 ```
 To try this out, re-execute the following command.
 ```terminal:execute
@@ -314,7 +314,7 @@ You might now be wondering whether you will need to laboriously provide a reply 
 2. You can provide a single top-level reply for the whole *Parallel*. This acts as a default for every branch. You can override on any branch by providing a reply specific to that branch, but otherwise, anything coming out is sent on to the top-level reply. 
 
 That means we can rewrite the YAML to be slightly shorter.
-```terminal:execute
+```execute
 kubectl apply -f - << EOF
 apiVersion: flows.knative.dev/v1beta1
 kind: Parallel
