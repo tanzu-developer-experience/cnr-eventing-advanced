@@ -3,6 +3,10 @@ name: Markdown Sample
 modules:
     activate:
     - workshop-overview
-    - exercises/01-knative-eventing
-    - exercises/02-try-knative-eventing
+    - exercises/01-what-is-knative
+    - exercises/02-knative-capabilities
+    - exercises/03-intro-knative-eventing
+    - exercises/04-basic-architecture-of-knative-eventing
+    - exercises/05-sources-and-sinks
+    - exercises/06-filtering-and-flowing
     - workshop-summary

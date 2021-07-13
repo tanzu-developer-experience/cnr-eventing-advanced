@@ -1,11 +1,7 @@
-The goal of this workshop was to introduce you to
+The goal of this workshop was to introduce you to the fundamental components and capabilities of **Knative Eventing** in more detail.
 
-- Understand the Why of Cloud Native Runtimes for VMware Tanzu and Knative 
-- Understand the basic pieces that makeup CNRs and Knative
-- Get a hands on experience with deploying a sample application as ***Knative service***
-
-Next Steps for you 
-- Deploy Knative on one of your clusters following the instructions
-- Deploy some of your applications and understand the ease of use and the developer experience once the system is installed
+Next Steps for you:
+- Deploy ***Cloud Native Runtimes for VMware Tanzu*** (and the OSS Knative) on one of your clusters via the official documentation
+- Deploy some applications with event-driven architecture were the events conform to the *CloudEvents* specifications and understand the ease of use and the developer experience of *Knative Eventing*
 - Provide feedback on what you will like to see
 - Get involved in the community that is building this amazing next generation cloud native runtime on top of Kubernetes

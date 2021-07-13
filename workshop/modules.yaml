@@ -1,12 +1,24 @@
 modules:
     workshop-overview:
         name: Workshop Overview
-        exit_sign: What is CNR?
-    exercises/01-knative-eventing:
-        name: Knative Eventing
-        exit_sign: Try Knative Eventing
-    exercises/02-try-knative-eventing:
-        name: Try Knative Eventing
+        exit_sign: What is Knative?
+    exercises/01-what-is-knative:
+        name: What is Knative
+        exit_sign: Knative’s capabilities
+    exercises/02-knative-capabilities:
+        name: Knative’s capabilities
+        exit_sign: Introducing Knative Eventing
+    exercises/03-intro-knative-eventing:
+        name: Introducing Knative Eventing
+        exit_sign: The basic architecture of Knative Eventing
+    exercises/04-basic-architecture-of-knative-eventing:
+        name: The basic architecture of Knative Eventing
+        exit_sign: Sources and Sinks
+    exercises/05-sources-and-sinks:    
+        name: Sources and Sinks
+        exit_sign: Filtering and Flowing
+    exercises/06-filtering-and-flowing:
+        name: Filtering and Flowing
         exit_sign: Workshop Summary
     workshop-summary:
         name: Workshop Summary

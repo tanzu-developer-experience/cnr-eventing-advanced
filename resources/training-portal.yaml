@@ -1,7 +1,7 @@
 apiVersion: training.eduk8s.io/v1alpha1
 kind: TrainingPortal
 metadata:
-  name: cnr-eventing-advanced
+  name: cnr-eventing-advanced-tsalm
 spec:
   portal:
     registration:
@@ -9,7 +9,7 @@ spec:
     ingress:
       class: contour-external
   workshops:
-  - name: cnr-eventing-advanced
+  - name: cnr-eventing-advanced-tsalm
     capacity: 2
     expires: 60m
     orphaned: 5m

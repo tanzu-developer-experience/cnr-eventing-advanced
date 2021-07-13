@@ -1,9 +1,8 @@
-This workshop will walk you through the fundamentals of Cloud Native Runtimes for VMware Tanzu. 
+As of this writing ***Cloud Native Runtimes for VMware Tanzu***(CNR) includes one runtime, based on the open source Knative project, with more to come in the future. It enables developers to leverage the power of Kubernetes for serverless use cases without first having to master the Kubernetes API.
 
-**What is Cloud Native Runtimes for VMware Tanzu**
+Knative has two major subprojects: **Serving** is responsible for deploying, upgrading, routing and **Eventing** is responsible for connecting disparate systems. 
 
-***Cloud Native Runtimes for VMware Tanzu*** includes Knative (pronounced kay-nay-tiv), an open source community project which adds components for deploying, running, and managing serverless, cloud-native applications to Kubernetes, and manages the deployment and ingress for you. Users interact with the CNR using the Knative "kn" CLI.  
+This workshop is intended for folks who want to learn the fundamental components and capabilities of **Knative Eventing** in more detail. A basic understanding of Kubernetes concepts is recommended to be able to understand the full workshop.
 
+The workshop is based on the book "Knative in Action" by Jacques Chester which is available as free download here: https://tanzu.vmware.com/content/ebooks/knative-in-action
 
-***Make your developers more productive.***
-CNR builds on top of Kubernetes, abstracting away the complex details and enabling developers to focus on what matters. Built by codifying the best practices shared by successful real-world implementations, CNR solves the "boring but difficult" parts of deploying and managing cloud native services so you don't have to.
