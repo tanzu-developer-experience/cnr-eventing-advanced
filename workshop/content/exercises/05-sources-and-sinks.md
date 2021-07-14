@@ -14,11 +14,16 @@ You should see the *ApiServerSource*, *ContainerSource*, and *PingSource*. Addit
 
 For working with *ApiServerSource* and *PingSource*, kn provides some convenient subcommands. First you have to deploy a broker and a sink.
 ```terminal:execute
-command: kn broker create default && kn service create cloudevents-player --image ruromero/cloudevents-player:latest --env BROKER_URL=http://default
+command: kn broker create default
 ```
+Instead of the CloudEvents player application, we will use Sockeye which reveals a slightly lower-level view.
+```terminal:execute
+command: kn service create sockeye --image docker.io/n3wscott/sockeye:v0.5.0
+```
+
 Now you are able to create the *PingSource* and specify the sink via the kn CLI.
 ```terminal:execute
-command: kn source ping create ping-player --sink $(kn service list cloudevents-player -o json  | jq --raw-output '.items[].status.url')
+command: kn source ping create ping-player --sink $(kn service list sockeye -o json  | jq --raw-output '.items[].status.url')
 ```
 If you have a look at the details of the created *Source* ...
 ```terminal:execute
@@ -28,7 +33,7 @@ command: kn source ping describe ping-player
 As you would expect, there is also the HTTP(S) URI to which *PingSource* is meant to send the *CloudEvent* and as always, some `Conditions`.
 *Data* is the actual JSON sent onwards to the *Sink*. Because we didn't specify any data at the creation of the *PingSource*, let's do this now.
 ```terminal:execute
-command: kn source ping update ping-player --data '{"foo":"and likewise bar"}'
+command: kn source ping update ping-player --data '{"message": "Hello world!"}'
 ```
 The kubectl/YAML counter-part for our source looks like this:
 ```
@@ -38,10 +43,10 @@ kind: PingSource
 metadata:
   name: ping-player
 spec:
-  data: '{"foo":"and likewise bar"}'
+  data: '{"message": "Hello world!"}'
   schedule: '* * * * *'
   sink:
-    uri: http://cloudevents-player.{{ session_namespace }}.{{ ingress_domain }} 
+    uri: http://sockeye.{{ session_namespace }}.{{ ingress_domain }} 
 EOF
 ```
 
@@ -55,7 +60,7 @@ Truthfully, the author of the book "Knative in Action" doesn’t think you shoul
 
 In previous examples so far we’ve positioned the `Sink` as being a URI. It turns out that this is only one way to express “send my *CloudEvents* here.” The other is to use a "Ref" — a reference to another Kubernetes record.
 ```terminal:execute
-command: kn source ping update ping-player --sink ksvc:cloudevents-player
+command: kn source ping update ping-player --sink ksvc:sockeye
 ```
 The kubectl/YAML counter-part for our source looks like this:
 ```
@@ -71,19 +76,19 @@ spec:
     ref:
       apiVersion: serving.knative.dev/v1
       kind: Service
-      name: cloudevents-player
+      name: sockeye
       namespace: {{ session_namespace }}
 EOF
 ```
-There’s no `--sink-ref` or `--ref` argument to signal to kn that you’re using a Ref instead of a URI. Your intention is derived from the syntax of what you pass in. If your argument starts with http:// or https://, the assumption is that you want a URI. If instead it starts with `ksvc:`, the assumption is that you want a Ref. You could also have used `service:cloudevents-player` as a more explicit alternative. Whichever you pick, just remember that a Knative Service is not the same as a Kubernetes Service.
+There’s no `--sink-ref` or `--ref` argument to signal to kn that you’re using a Ref instead of a URI. Your intention is derived from the syntax of what you pass in. If your argument starts with http:// or https://, the assumption is that you want a URI. If instead it starts with `ksvc:`, the assumption is that you want a Ref. You could also have used `service:sockeye` as a more explicit alternative. Whichever you pick, just remember that a Knative Service is not the same as a Kubernetes Service.
 
 Which is better? URIs are simpler to start with and allow you to target endpoints that live outside the cluster Knative is running on. But consider using Refs instead. A URI is just an address, what lies on the other side is (for good or ill) a blackbox. But a Ref is a Knative construct referring to a Knative Service. Knative knows how to open the box to peek at what’s inside.
 
 This is most useful when things go awry. Let’s demonstrate by creating some unexpected havoc as uncovered in this listing.
 ```terminal:execute
-command: kn service delete cloudevents-player && kn source ping describe ping-player
+command: kn service delete sockeye && kn source ping describe ping-player
 ```
-The `Ready` Condition is a top-level rollup of other Conditions. The more diagnostic Condition is that `SinkProvided` is `!!` (not OK). The `NotFound` reason explains why. This information is surfaced because +Knative Eventing* can go and see if the nominated Ref actually exists. That’s not something it can do with URI. 
+The `Ready` Condition is a top-level rollup of other Conditions. The more diagnostic Condition is that `SinkProvided` is `!!` (not OK). The `NotFound` reason explains why. This information is surfaced because *Knative Eventing* can go and see if the nominated Ref actually exists. That’s not something it can do with URI. 
 
 ## The mysterious SinkBinding
 
@@ -114,7 +119,7 @@ In addition to the first-party *Sources* that enable you to kick the Eventing ti
 
 To clean up the environment for the next section run:
 ```terminal:execute
-command: kn broker delete default && kn service delete cloudevents-player && kn source ping delete ping-player && clear
+command: kn broker delete default && kn service delete sockeye && kn source ping delete ping-player && clear
 ```
 
 
