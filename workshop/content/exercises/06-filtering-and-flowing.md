@@ -99,7 +99,7 @@ kubectl get sequence example-sequence
 ```
 What’s left for this example is to add a *PingSource*.
 ```execute
-kn source ping create ping-sequence --data "{'message': 'Hello world!'}" --sink $(kubectl get sequence example-sequence -o json  | jq --raw-output '.status.address.url')
+kn source ping create ping-sequence --data '{"message": "Hello world!"}' --sink $(kubectl get sequence example-sequence -o json  | jq --raw-output '.status.address.url')
 ```
 Now, if you go to the Sockeye application, you can see the *CloudEvents* as those arrive after passing through the *Sequence*.
 ```
@@ -269,8 +269,8 @@ kn trigger create parallel-example --filter type=com.example.parallel --sink $(k
 ```
 You now have a *Trigger* to send matching *CloudEvents* to the *Parallel*’s URI. The *Parallel* sends that *CloudEvent* on to the *Service* I created, which appends `FIRST BRANCH` to whatever *CloudEvent* message passes it by. Then the *CloudEvent* should pop up in in the Sockeye application.
 To try this out, execute the following command.
-```terminal:execute
-command: curl -XPOST -H 'Ce-Id: $(uuidgen)' -H 'Ce-Specversion: 1.0' -H 'Ce-Type: com.example.parallel' -H 'Ce-Source: example/parallel' -H "Content-type: application/json" -d '{"message": "Hello world!"}' '$(kubectl get broker default -o json  | jq --raw-output ".status.address.url")'
+```execute
+curl -XPOST -H 'Ce-Id: $(uuidgen)' -H 'Ce-Specversion: 1.0' -H 'Ce-Type: com.example.parallel' -H 'Ce-Source: example/parallel' -H "Content-type: application/json" -d '{"message": "Hello world!"}' $(kubectl get broker default -o json  | jq --raw-output ".status.address.url")
 ```
 Let's now add a second subscriber that also replies to the Sockeye application.
 ```execute
@@ -303,12 +303,12 @@ spec:
         name: sockeye
 EOF
 ```
-```terminal:execute
-command: kn service create second-branch-service --image gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/appender --env MESSAGE=" - Handled by branch 1"
+```execute
+kn service create second-branch-service --image gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/appender --env MESSAGE=" - Handled by branch 1"
 ```
 To try this out, re-execute the following command.
-```terminal:execute
-command: curl -XPOST -H 'Ce-Id: $(uuidgen)' -H 'Ce-Specversion: 1.0' -H 'Ce-Type: com.example.parallel' -H 'Ce-Source: example/parallel' -H "Content-type: application/json" -d '{"message": "Hello world!"}' $(kubectl get broker default -o json  | jq --raw-output ".status.address.url")
+```execute
+curl -XPOST -H 'Ce-Id: $(uuidgen)' -H 'Ce-Specversion: 1.0' -H 'Ce-Type: com.example.parallel' -H 'Ce-Source: example/parallel' -H "Content-type: application/json" -d '{"message": "Hello world!"}' $(kubectl get broker default -o json  | jq --raw-output ".status.address.url")
 ```
 The *Parallel* made two copies of the *CloudEvent* and sent those to each of the branches (fan-out). Then those branches sent their reply to the same instance of the Sockeye application (fan-in).
 
@@ -348,8 +348,8 @@ EOF
 As with *Sequence*, it’s possible to set the `channelTemplate` field on a *Parallel* at the top level. 
 
 To clean up the environment run:
-```terminal:execute
-command: kn service delete first-branch-service && kn service delete second-branch-service && kubectl delete parallel example-parallel && kn trigger delete parallel-example && kn broker delete default && clear
+```execute
+kn service delete first-branch-service && kn service delete second-branch-service && kubectl delete parallel example-parallel && kn trigger delete parallel-example && kn broker delete default && clear
 ```
 
 ## Dealing with failures
