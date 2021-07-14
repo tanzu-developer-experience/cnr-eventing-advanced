@@ -32,8 +32,8 @@ command: kn source ping describe ping-player
 ... you can see the `Schedule` with the rule `* * * * *` that is satisfied every minute.
 As you would expect, there is also the HTTP(S) URI to which *PingSource* is meant to send the *CloudEvent* and as always, some `Conditions`.
 *Data* is the actual JSON sent onwards to the *Sink*. Because we didn't specify any data at the creation of the *PingSource*, let's do this now.
-```terminal:execute
-command: kn source ping update ping-player --data '{"message": "Hello world!"}'
+```execute
+kn source ping update ping-player --data '{"message": "Hello world!"}'
 ```
 The kubectl/YAML counter-part for our source looks like this:
 ```
