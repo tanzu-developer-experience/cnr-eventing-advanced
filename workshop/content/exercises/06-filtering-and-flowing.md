@@ -15,13 +15,10 @@ A *Broker* in Knative land serves two major purposes:
 
 ## Filters
 *Triggers* include filters. Let's create a *Trigger* together with a *Broker*.
-```terminal:execute
-command: kn broker create default && kn trigger create example-trigger --filter type=dev.knative.example.com --sink http://example.com/
-```
-```terminal:execute
-command: kn trigger describe example-trigger
-```
-As you can see we added the following filter to *Trigger*: type=dev.knative.example.com. This says "let through any *CloudEvent* with type of dev.knative.example.com"
+```execute
+kn broker create default && kn trigger create example-trigger --filter type=dev.knative.example.com --sink http://example.com/
+kn trigger describe example-trigger
+As you can see we added the following filter to *Trigger*: `type=dev.knative.example.com`. This says "let through any *CloudEvent* with type of dev.knative.example.com"
 
 *Knative Eventing’s* filtering rules are strict: exact matches only. There are no partial matches, no `startsWith` or `endsWith`, no regular expressions. You can filter on multiple *CloudEvent* attributes, but this too is quite strict: all the fields must match. These are `AND`ed, not `OR`ed.
 Suppose you decided to do all your triggering based on the type and source attributes of *CloudEvents*. The following listing shows how you can set up a series of triggers and their filters with kn.
@@ -105,7 +102,7 @@ command: kn source ping create ping-sequence --data "Where have I been?" --sink 
 ```
 Now, if you go to the Sockeye application, you can see the *CloudEvents* as those arrive after passing through the *Sequence*.
 ```copy
-echo "http://sockeye.{{ session_namespace }}.{{ ingress_domain }} "
+http://sockeye.{{ session_namespace }}.{{ ingress_domain }}
 ```
 
 Note the appending of `Passed through FIRSTPassed through SECOND`, which is the evidence that *Knative Eventing* shipped the *CloudEvent* via the two steps defined in the *Sequence*.
