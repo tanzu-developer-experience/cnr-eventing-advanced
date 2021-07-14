@@ -18,6 +18,7 @@ A *Broker* in Knative land serves two major purposes:
 ```execute
 kn broker create default && kn trigger create example-trigger --filter type=dev.knative.example.com --sink http://example.com/
 kn trigger describe example-trigger
+```
 As you can see we added the following filter to *Trigger*: `type=dev.knative.example.com`. This says "let through any *CloudEvent* with type of dev.knative.example.com"
 
 *Knative Eventing’s* filtering rules are strict: exact matches only. There are no partial matches, no `startsWith` or `endsWith`, no regular expressions. You can filter on multiple *CloudEvent* attributes, but this too is quite strict: all the fields must match. These are `AND`ed, not `OR`ed.
@@ -30,13 +31,13 @@ kn trigger create trigger-4 --filter type=net.example.another --sink example-sin
 kn trigger create trigger-5 --filter type=net.example.another --filter source=a-different-source --sink example-sink
 ```
 Now, suppose you have a *CloudEvent* with type: `com.example.type` and source: `/example/source/123`. 
-Because only exact matches will pass through the filter defined by a `Trigger` only the first two will forward the message to the sink.
+Because only exact matches will pass through the filter defined by a *Trigger* only the first two will forward the message to the sink.
 
 The upside of this strictness with highly specific filters is that downstream systems are less likely to be accidentally overloaded by traffic with unexpected new fields or changes in demand.
 The downside is that it’s inexpressive.
 
 You have three choices. One is to wait for *Knative Eventing* to acquire a more expressive filtering system. 
-Another is to perform some amount of filtering at the receiving end, meaning that some fraction of incoming `CloudEvents` is basically wasted. 
+Another is to perform some amount of filtering at the receiving end, meaning that some fraction of incoming *CloudEvents* is basically wasted. 
 The third option is to inject additional information at the origin, against which simple filters can be applied.
 
 You can filter on broadly any attribute in a *CloudEvent*. You can add filters for `source`, `type` and other required attributes (`specversion` and `id`). 
@@ -49,7 +50,7 @@ Note what’s missing from this list: filtering on the body of the *CloudEvent*.
 You can use *Sources* (and *Sinks*) to wire everything together. But that’s inconvenient, so you can use *Brokers* and *Triggers* to do it more simply. But at some point, that too becomes a hassle: remembering to provide the right collection of *Triggers* and being careful to set these up in the correct order. And further, *Brokers* can become a choke point in your architecture. The answer to this problem is to more directly move traffic from place to place without passing through the central hub. *Sequences* are the annointed way to fulfill this goal.
 
 Why not just skip the *Broker*? Well, for one thing, it is a simple and flexible way to get started.
-Another reason to use the *Broker*/*Trigger* approach first is that, as of this writing, kn doesn’t support *Sequences* (or *Parallels*).
+Another reason to use the *Broker*/*Trigger* approach first is that, as of this writing, the kn CLI doesn’t support *Sequences* (or *Parallels*).
 
 Let's now build a simple *Sequence* to demonstrate three main points: how *CloudEvents* get into a *Sequence*, how these move through a *Sequence*, and how these leave the *Sequence*.
 
