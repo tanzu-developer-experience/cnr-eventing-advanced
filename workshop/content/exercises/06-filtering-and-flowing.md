@@ -98,11 +98,11 @@ kn service create second-sequence-service --image gcr.io/knative-releases/knativ
 kubectl get sequence example-sequence
 ```
 What’s left for this example is to add a *PingSource*.
-```terminal:execute
-command: kn source ping create ping-sequence --data "{'message': 'Hello world!'}" --sink $(kubectl get sequence example-sequence -o json  | jq --raw-output '.status.address.url')
+```execute
+kn source ping create ping-sequence --data "{'message': 'Hello world!'}" --sink $(kubectl get sequence example-sequence -o json  | jq --raw-output '.status.address.url')
 ```
 Now, if you go to the Sockeye application, you can see the *CloudEvents* as those arrive after passing through the *Sequence*.
-```copy
+```
 http://sockeye.{{ session_namespace }}.{{ ingress_domain }}
 ```
 
