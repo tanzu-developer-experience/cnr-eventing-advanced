@@ -119,7 +119,7 @@ In addition to the first-party *Sources* that enable you to kick the Eventing ti
 
 To clean up the environment for the next section run:
 ```terminal:execute
-command: kn broker delete default && kn service delete sockeye && kn source ping delete ping-player && clear
+command: kn broker delete default && kn source ping delete ping-player && clear
 ```
 
 

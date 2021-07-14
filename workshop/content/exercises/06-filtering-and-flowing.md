@@ -112,7 +112,7 @@ One note, you don’t need *Sources* to drive a *Sequence*. The *Sequence* satis
 
 To clean up the environment run:
 ```terminal:execute
-command: kn service delete first-sequence-service && kn service delete second-sequence-service && kn source ping delete ping-sequence && kubectl delete sequence example-sequence && clear
+command: kn service delete first-sequence-service && kn service delete second-sequence-service && kn service delete sockeye && kn source ping delete ping-sequence && kubectl delete sequence example-sequence && clear
 ```
 
 ### The anatomy of *Sequences* 
@@ -308,7 +308,7 @@ command: kn service create second-branch-service --image gcr.io/knative-releases
 ```
 To try this out, re-execute the following command.
 ```terminal:execute
-command: curl -XPOST -H 'Ce-Id: $(uuidgen)' -H 'Ce-Specversion: 1.0' -H 'Ce-Type: com.example.parallel' -H 'Ce-Source: example/parallel' -H "Content-type: application/json" -d '{"message": "Hello world!"}' '$(kubectl get broker default -o json  | jq --raw-output ".status.address.url")'
+command: curl -XPOST -H 'Ce-Id: $(uuidgen)' -H 'Ce-Specversion: 1.0' -H 'Ce-Type: com.example.parallel' -H 'Ce-Source: example/parallel' -H "Content-type: application/json" -d '{"message": "Hello world!"}' $(kubectl get broker default -o json  | jq --raw-output ".status.address.url")
 ```
 The *Parallel* made two copies of the *CloudEvent* and sent those to each of the branches (fan-out). Then those branches sent their reply to the same instance of the Sockeye application (fan-in).
 
