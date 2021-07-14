@@ -20,7 +20,7 @@ spec:
     files: github.com/tanzu-developer-experience/cnr-eventing-advanced?ref=adv-eventing-tsalm
   session:
     namespaces:
-      budget: large
+      budget: xxx-large
       limits:
         min:
           cpu: 25m

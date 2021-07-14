@@ -93,22 +93,27 @@ command: kubectl get sequence example-sequence
 ... you can see that the *Sequence* is not ready, because `SubscriptionsNotReady`. The *Subscriptions* in this case are the two *Services*: first-sequence-service and second-sequence-service.
 You will create these now, using a simple example system provided by *Knative Eventing*.
 ```execute
-kn service create first-sequence-service --image gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/appender --env MESSAGE="through FIRST" 
-kn service create second-sequence-service --image gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/appender --env MESSAGE="through SECOND"
+kn service create first-sequence-service --image gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/appender --env MESSAGE=" - Handled by 0"
+kn service create second-sequence-service --image gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/appender --env MESSAGE=" - Handled by 1"
 kubectl get sequence example-sequence
 ```
 What’s left for this example is to add a *PingSource*.
 ```terminal:execute
-command: kn source ping create ping-sequence --data "Where have I been?" --sink $(kubectl get sequence example-sequence -o json  | jq --raw-output '.status.address.url')
+command: kn source ping create ping-sequence --data '{"message": "Hello world!"}' --sink $(kubectl get sequence example-sequence -o json  | jq --raw-output '.status.address.url')
 ```
 Now, if you go to the Sockeye application, you can see the *CloudEvents* as those arrive after passing through the *Sequence*.
 ```copy
 http://sockeye.{{ session_namespace }}.{{ ingress_domain }}
 ```
 
-Note the appending of `Passed through FIRSTPassed through SECOND`, which is the evidence that *Knative Eventing* shipped the *CloudEvent* via the two steps defined in the *Sequence*.
+Note the appending of `Hello world! - Handled by 0 - Handled by 1`, which is the evidence that *Knative Eventing* shipped the *CloudEvent* via the two steps defined in the *Sequence*.
 
 One note, you don’t need *Sources* to drive a *Sequence*. The *Sequence* satisfies the *Addressable* duck type in *Knative Eventing*. In short, anything that can send a *CloudEvent* over HTTP to a URI can be used to kick off *Sequences*. Such as, for example, a *Broker* with the right *Trigger* configuration.
+
+To clean up the environment run:
+```terminal:execute
+command: kn service delete first-sequence-service && kn service delete second-sequence-service && kn source ping delete ping-sequence && kubectl delete sequence example-sequence && clear
+```
 
 ### The anatomy of *Sequences* 
 *Sequences* have three main, top-level components. These include the `steps` and `reply`, which you’ve already seen, plus `channelTemplate`.
@@ -202,6 +207,7 @@ A developer won’t be setting `channelTemplate` often. It might be fine to use 
 You can mix and match *Sequences* with *Broker*/*Trigger* setups in basically any combination you please. This is again due to the magic of *duck typing*: a *Broker* can be a destination for a *Sequence* step or reply, and a *Sequence* can be a destination for a *Trigger*.
 
 ## Parallels
+
 *Parallels* resemble *Sequences*, but there are some ergonomic differences. 
 ```
 ---
@@ -226,14 +232,14 @@ In *Sequence*, each entry in the `spec.steps` array is a destination—a URI or 
 In *Parallel*, the top-level array is `spec.branches`. It’s not an array of destinations. It’s an array of branches.
 Each branch has one required field: a subscriber, which is a destination. Again, you can use a URI or Ref here.
 So why the extra level of indirection via subscriber, between `spec.branches` and uri or ref? It exists because a branch can actually carry quite a bit of optional configuration:
-- *filter* A specialized destination that can pass or reject a *CloudEvent*
-- *reply* It’s our old friend, Reply, but you can set one for each and every branch if you like.
+- `filter` A specialized destination that can pass or reject a *CloudEvent*
+- `reply` It’s our old friend, Reply, but you can set one for each and every branch if you like.
 
 The filter in *Parallel* is not the same as a filter on a *Trigger*. It’s just a completely different, completely unrelated thing. 
 Instead of being a rule that’s applied by a *Broker* or *Broker*-like system, a Branch’s filter is a destination. It’s a URI or Ref to which a *CloudEvent* is sent by *Knative Eventing* and then whatever lives at that destination has to give a thumbs up or thumbs down.
 If you squint a bit, the combination of filter and subscriber is a lot like a two-step *Sequence*. The *CloudEvent* flows to the filter, then from the filter onto the subscriber.
 But realistically, the filter and the subscriber are both fully-fledged processes; anything the filter can do, the subscriber can, and vice versa. In terms of expressing developer intention, it’s a nice separation and resembles guarded clauses. But the overhead of routing through a process to get a pass/fail decision can prove to be fairly hefty.
-When should you use a filter on *Parallel* branches? The view of the author of "Knative in Action" is that you shouldn’t, with one exception. If your subscriber is an expensive or limited resource, you will want to shed as much unwanted demand before you reach it. For example, I might be running a system where I want to send some small fraction of CloudEvents to an in-memory analytics store for further analysis. Rather than inserting everything coming off the wire, I would prefer to shed load before reaching the database. In this scenario, the filter is a useful ally.
+When should you use a filter on *Parallel* branches? The view of the author of "Knative in Action" is that you shouldn’t, with one exception. If your subscriber is an expensive or limited resource, you will want to shed as much unwanted demand before you reach it. For example, I might be running a system where I want to send some small fraction of *CloudEvents* to an in-memory analytics store for further analysis. Rather than inserting everything coming off the wire, I would prefer to shed load before reaching the database. In this scenario, the filter is a useful ally.
 
 The simplest thing you can do with a Parallel is to pretend it’s a Sequence.
 ```execute
@@ -257,13 +263,14 @@ spec:
 EOF
 ```
 ```execute
-kn service create first-branch-service --image gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/appender --env MESSAGE=" BRANCH"
-kn trigger create parallel-example --filter type=com.example.parallel --sink http://example-parallel-kn-parallel-0-kn-channel.{{ session_namespace }}.{{ ingress_domain }}
+kn service create first-branch-service --image gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/appender --env MESSAGE=" - Handled by branch 0"
+kn service create sockeye --image docker.io/n3wscott/sockeye:v0.5.0
+kn trigger create parallel-example --filter type=com.example.parallel --sink $(kubectl get parallel example-parallel -o json  | jq --raw-output '.status.address.url')
 ```
 You now have a *Trigger* to send matching *CloudEvents* to the *Parallel*’s URI. The *Parallel* sends that *CloudEvent* on to the *Service* I created, which appends `FIRST BRANCH` to whatever *CloudEvent* message passes it by. Then the *CloudEvent* should pop up in in the Sockeye application.
 To try this out, execute the following command.
 ```terminal:execute
-command: http post http://{{ session_namespace }}.{{ ingress_domain }}/default/default Ce-Id:$(uuidgen) Ce-Specversion:1.0 Ce-Type:com.example.parallel Ce-Source:example/parallel message="Here is the Parallel: "
+command: curl -XPOST -H 'Ce-Id: $(uuidgen)' -H 'Ce-Specversion: 1.0' -H 'Ce-Type: com.example.parallel' -H 'Ce-Source: example/parallel' -H "Content-type: application/json" -d '{"message": "Hello world!"}' '$(kubectl get broker default -o json  | jq --raw-output ".status.address.url")'
 ```
 Let's now add a second subscriber that also replies to the Sockeye application.
 ```execute
@@ -297,15 +304,15 @@ spec:
 EOF
 ```
 ```terminal:execute
-command: kn service create second-branch-service --image gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/appender --env MESSAGE=" BRANCH"
+command: kn service create second-branch-service --image gcr.io/knative-releases/knative.dev/eventing-contrib/cmd/appender --env MESSAGE=" - Handled by branch 1"
 ```
 To try this out, re-execute the following command.
 ```terminal:execute
-command: http post http://{{ session_namespace }}.{{ ingress_domain }}/default/default Ce-Id:$(uuidgen) Ce-Specversion:1.0 Ce-Type:com.example.parallel Ce-Source:example/parallel message="Here is the Parallel: "
+command: curl -XPOST -H 'Ce-Id: $(uuidgen)' -H 'Ce-Specversion: 1.0' -H 'Ce-Type: com.example.parallel' -H 'Ce-Source: example/parallel' -H "Content-type: application/json" -d '{"message": "Hello world!"}' '$(kubectl get broker default -o json  | jq --raw-output ".status.address.url")'
 ```
 The *Parallel* made two copies of the *CloudEvent* and sent those to each of the branches (fan-out). Then those branches sent their reply to the same instance of the Sockeye application (fan-in).
 
-In this example we now have two *CloudEvents* with identical `id`, `source`, and `type` fields. Any conforming implementation is within its rights to treat these as the same logical *CloudEvent*, even though these are physically distinct. When working with *Parallels*, you need to take this into consideration when you have a fan-in. For example, if one branch does some kind of conversion to a different CloudEvent, you are largely in the clear. But if you are merely adding to a CloudEvent, as we did you need something stronger. Either you should be filtering so that logical duplicates don’t arise, or you should be changing one of `id`, `type`, or `source` according to what makes the most sense.
+In this example we now have two *CloudEvents* with identical `id`, `source`, and `type` fields. Any conforming implementation is within its rights to treat these as the same logical *CloudEvent*, even though these are physically distinct. When working with *Parallels*, you need to take this into consideration when you have a fan-in. For example, if one branch does some kind of conversion to a different *CloudEvent*, you are largely in the clear. But if you are merely adding to a *CloudEvent*, as we did you need something stronger. Either you should be filtering so that logical duplicates don’t arise, or you should be changing one of `id`, `type`, or `source` according to what makes the most sense.
 
 You might now be wondering whether you will need to laboriously provide a reply for every branch. The answer is "no", for two reasons. 
 1. You just might not care about the fate of a *CloudEvent* sent to a branch’s subscriber. You can leave reply out entirely. *CloudEvents* are delivered as HTTP requests, but no HTTP reply is expected or dealt with. 
@@ -339,6 +346,11 @@ EOF
 ```
 
 As with *Sequence*, it’s possible to set the `channelTemplate` field on a *Parallel* at the top level. 
+
+To clean up the environment run:
+```terminal:execute
+command: kn service delete first-branch-service && kn service delete second-branch-service && kubectl delete parallel example-parallel && kn trigger delete parallel-example && kn broker delete default && clear
+```
 
 ## Dealing with failures
 *Knative Eventing* provides allowances for failure by implementing some common patterns: retries, retry backoffs, and dead-letter destinations.
