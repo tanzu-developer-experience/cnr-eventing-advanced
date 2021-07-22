@@ -1,9 +1,9 @@
 apiVersion: training.eduk8s.io/v1alpha2
 kind: Workshop
 metadata:
-  name: cnr-eventing-advanced-tsalm
+  name: cnr-eventing-advanced
 spec:
-  title: Advanced Knative Eventing for Cloud Native Runtimes for VMware Tanzu by tsalm
+  title: Advanced Knative Eventing for Cloud Native Runtimes for VMware Tanzu
   description: A workshop that presents advanced topics in Knative Eventing for users of the Cloud Native Runtimes for VMware Tanzu
   vendor: eduk8s.io
   authors:
@@ -17,7 +17,7 @@ spec:
 #    image: quay.io/eduk8s/base-environment:master
 #    image: olrich/cnr-workshop:0.1
     image: ghcr.io/clue2solve/knative-workshop-eduk8s:latest
-    files: github.com/tanzu-developer-experience/cnr-eventing-advanced?ref=adv-eventing-tsalm
+    files: github.com/tanzu-developer-experience/cnr-eventing-advanced?ref=adv-eventing
   session:
     namespaces:
       budget: xxx-large
